@@ -45,7 +45,7 @@ def _load_apply_rotary_emb():
     return apply_rotary_emb
 
 
-class HeadwiseSubjectBackgroundSubjectReleaseFluxAttnProcessor:
+class Flux2AttnProcessor:
     def __init__(self, state, block_name: str, is_single_stream: bool):
         self.state = state
         self.block_name = block_name
