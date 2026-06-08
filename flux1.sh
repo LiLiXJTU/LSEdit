@@ -1,0 +1,24 @@
+python scripts/run_piebench_batch.py \
+    --backend flux1-kontext \
+    --model-path /data_ljy/ll/weight/FLUX.1-Kontext-dev \
+    --pie-root /data_ljy/ll/dataset/PIE_Bench \
+    --output-dir output/flux1 \
+    --disable-trajectory-trust \
+    --gpu-id 0 \
+    --seed 42 \
+    --threshold 0.74 \
+    --subject-threshold 0.55 \
+    --bhc-tau-low 0.49 \
+    --bhc-tau-high 0.59 \
+    --bhc-lambda-max 0.15 \
+    --subject-select-mode largest \
+    --subject-open-kernel 3 \
+    --subject-close-kernel 1 \
+    --subject-dilate-radius 1 \
+    --background-discovery-step 16 \
+    --subject-release-scale 0 \
+    --sample-ids 000000000025 \
+    --alpha 2.0 \
+    --beta 1 \
+    --warmup-steps 3 \
+    --overwrite
