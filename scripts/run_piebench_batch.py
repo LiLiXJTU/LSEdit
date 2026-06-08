@@ -12,8 +12,8 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from havedit.eval.inference import load_local_pipeline, run_single_edit
-from havedit.flux.attention_processor_headwise_subjectbg_subjectrelease import (
+from lsedit.eval.inference import load_local_pipeline, run_single_edit
+from lsedit.flux.attention_processor_headwise_subjectbg_subjectrelease import (
     enable_headwise_subjectbg_subjectrelease_havedit,
 )
 from scripts.run_flux_demo_headwise_subjectbg_subjectrelease import (
