@@ -9,10 +9,10 @@ from types import SimpleNamespace
 import numpy as np
 import torch
 
-from havedit.backends import get_backend_adapter_class
+from lsedit.backends import get_backend_adapter_class
 
 from .pipeline import initialize_source_latents
-from .runtime import HAVEditRuntimeState
+from .runtime import LSEditRuntimeState
 
 
 def _set_processor(attention, processor) -> None:
@@ -24,9 +24,9 @@ def _set_processor(attention, processor) -> None:
 
 
 def _iter_transformer_blocks(transformer):
-    backend_name = getattr(transformer, "_havedit_backend", None)
+    backend_name = getattr(transformer, "_lsedit_backend", None)
     if backend_name is None:
-        raise ValueError("Transformer is missing _havedit_backend")
+        raise ValueError("Transformer is missing _lsedit_backend")
 
     adapter = get_backend_adapter_class(backend_name)()
     yield from adapter.iter_transformer_blocks(SimpleNamespace(transformer=transformer))
@@ -68,7 +68,7 @@ def _prepare_condition_images(pipeline, image, height, width):
     if image is None:
         return None, height, width
 
-    backend_name = getattr(getattr(pipeline, "transformer", None), "_havedit_backend", None)
+    backend_name = getattr(getattr(pipeline, "transformer", None), "_lsedit_backend", None)
     if not isinstance(image, list):
         image = [image]
 
@@ -157,7 +157,7 @@ def _prepare_timesteps(pipeline, base_module, latents: torch.Tensor, num_inferen
 
 @contextmanager
 def _restore_original_processors(pipeline):
-    original_processors = getattr(pipeline, "_havedit_original_processors", None)
+    original_processors = getattr(pipeline, "_lsedit_original_processors", None)
     if not original_processors:
         yield
         return
@@ -182,7 +182,7 @@ def _wrapped_pipeline_class(base_cls):
     xla_available = getattr(base_module, "XLA_AVAILABLE", False)
     xm = getattr(base_module, "xm", None)
 
-    class HAVEditPipeline(base_cls):
+    class LSEditPipeline(base_cls):
         @torch.no_grad()
         def __call__(self, *args, **kwargs):
             bound = base_signature.bind(self, *args, **kwargs)
@@ -216,11 +216,11 @@ def _wrapped_pipeline_class(base_cls):
             max_sequence_length = params.get("max_sequence_length")
             text_encoder_out_layers = params.get("text_encoder_out_layers")
 
-            adapter = getattr(self, "_havedit_backend_adapter", None)
+            adapter = getattr(self, "_lsedit_backend_adapter", None)
             if adapter is None:
-                backend_name = getattr(self.transformer, "_havedit_backend", "flux2")
+                backend_name = getattr(self.transformer, "_lsedit_backend", "flux2")
                 adapter = get_backend_adapter_class(backend_name)()
-                self._havedit_backend_adapter = adapter
+                self._lsedit_backend_adapter = adapter
 
             prepare_condition_images = getattr(adapter, "prepare_condition_images", _prepare_condition_images)
             condition_images, height, width = prepare_condition_images(self, image, height, width)
@@ -299,7 +299,7 @@ def _wrapped_pipeline_class(base_cls):
             )
             self._num_timesteps = len(timesteps)
 
-            state = self._havedit_state
+            state = self._lsedit_state
             state.begin_run(
                 total_steps=num_inference_steps,
                 text_n=run_ctx.text_n,
@@ -394,22 +394,22 @@ def _wrapped_pipeline_class(base_cls):
                 return image
             return output_cls(images=image)
 
-    HAVEditPipeline.__name__ = f"HAVEdit{base_cls.__name__}"
-    HAVEditPipeline.__qualname__ = HAVEditPipeline.__name__
-    HAVEditPipeline.__module__ = base_cls.__module__
-    return HAVEditPipeline
+    LSEditPipeline.__name__ = f"LSEdit{base_cls.__name__}"
+    LSEditPipeline.__qualname__ = LSEditPipeline.__name__
+    LSEditPipeline.__module__ = base_cls.__module__
+    return LSEditPipeline
 
 
-def enable_havedit(pipeline, config):
-    from .attention_processor_headwise_subjectbg_subjectrelease import HAVEditFluxAttnProcessor
+def enable_lsedit(pipeline, config):
+    from .attention_processor_flux2 import LSEditFluxAttnProcessor
 
-    if hasattr(pipeline, "_havedit_state"):
+    if hasattr(pipeline, "_lsedit_state"):
         return pipeline
 
-    state = HAVEditRuntimeState(config=config)
+    state = LSEditRuntimeState(config=config)
     runtime_cfg = getattr(config, "runtime", config)
     backend_name = getattr(runtime_cfg, "backend", "flux2")
-    pipeline.transformer._havedit_backend = backend_name
+    pipeline.transformer._lsedit_backend = backend_name
     adapter = get_backend_adapter_class(backend_name)()
     original_class = pipeline.__class__
     original_processors = []
@@ -423,10 +423,10 @@ def enable_havedit(pipeline, config):
                 state=state,
                 block_name=block_name,
                 stream_kind=stream_kind,
-                default_processor_cls=HAVEditFluxAttnProcessor,
+                default_processor_cls=LSEditFluxAttnProcessor,
             )
             if callable(build_attention_processor)
-            else HAVEditFluxAttnProcessor(
+            else LSEditFluxAttnProcessor(
                 state=state,
                 block_name=block_name,
                 is_single_stream=stream_kind == "single_stream",
@@ -434,27 +434,27 @@ def enable_havedit(pipeline, config):
         )
         _set_processor(attention, processor)
 
-    pipeline._havedit_state = state
-    pipeline._havedit_backend_adapter = adapter
-    pipeline._havedit_original_class = original_class
-    pipeline._havedit_original_processors = original_processors
+    pipeline._lsedit_state = state
+    pipeline._lsedit_backend_adapter = adapter
+    pipeline._lsedit_original_class = original_class
+    pipeline._lsedit_original_processors = original_processors
     pipeline.__class__ = _wrapped_pipeline_class(original_class)
     return pipeline
 
 
-def disable_havedit(pipeline):
-    for attention, processor in getattr(pipeline, "_havedit_original_processors", []):
+def disable_lsedit(pipeline):
+    for attention, processor in getattr(pipeline, "_lsedit_original_processors", []):
         _set_processor(attention, processor)
 
-    original_class = getattr(pipeline, "_havedit_original_class", None)
+    original_class = getattr(pipeline, "_lsedit_original_class", None)
     if original_class is not None:
         pipeline.__class__ = original_class
 
-    for name in ("_havedit_state", "_havedit_backend_adapter", "_havedit_original_class", "_havedit_original_processors"):
+    for name in ("_lsedit_state", "_lsedit_backend_adapter", "_lsedit_original_class", "_lsedit_original_processors"):
         if hasattr(pipeline, name):
             delattr(pipeline, name)
 
     return pipeline
 
 
-__all__ = ["disable_havedit", "enable_havedit"]
+__all__ = ["disable_lsedit", "enable_lsedit"]

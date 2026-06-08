@@ -3,9 +3,9 @@ from __future__ import annotations
 from importlib import import_module
 
 _BACKENDS = {
-    "flux1-kontext": ("havedit.backends.flux1_kontext", "Flux1KontextBackendAdapter"),
-    "flux2": ("havedit.backends.flux2", "Flux2BackendAdapter"),
-    "qwen-image-edit": ("havedit.backends.qwen_image_edit", "QwenImageEditBackendAdapter"),
+    "flux1-kontext": ("lsedit.backends.flux1_kontext", "Flux1KontextBackendAdapter"),
+    "flux2": ("lsedit.backends.flux2", "Flux2BackendAdapter"),
+    "qwen-image-edit": ("lsedit.backends.qwen_image_edit", "QwenImageEditBackendAdapter"),
 }
 
 

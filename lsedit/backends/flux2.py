@@ -3,8 +3,8 @@ from __future__ import annotations
 import torch
 from diffusers import DiffusionPipeline
 
-from havedit.backends.base import BackendRunContext
-from havedit.flux.model_loader import configure_pipeline_runtime, resolve_dtype
+from lsedit.backends.base import BackendRunContext
+from lsedit.flux.model_loader import configure_pipeline_runtime, resolve_dtype
 
 
 def _iter_transformer_blocks(transformer):

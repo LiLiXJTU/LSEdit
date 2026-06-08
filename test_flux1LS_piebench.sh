@@ -2,7 +2,7 @@
 #     --backend flux1-kontext \
 #     --model-path /data_ljy/ll/weight/FLUX.1-Kontext-dev \
 #     --pie-root /data_ljy/ll/dataset/PIE_Bench \
-#     --output-dir /data_ljy/ll/output/results/PIE_Bench/flux1_havedit_step10_t72_low0.42 \
+#     --output-dir /data_ljy/ll/output/results/PIE_Bench/flux1_lsedit_step10_t72_low0.42 \
 #     --gpu-id 4 \
 #     --seed 42 \
 #     --threshold 0.72 \
@@ -19,7 +19,7 @@
 #     --backend flux1-kontext \
 #     --model-path /data_ljy/ll/weight/FLUX.1-Kontext-dev \
 #     --pie-root /data_ljy/ll/dataset/PIE_Bench \
-#     --output-dir /data_ljy/ll/output/results/PIE_Bench/flux1_havedit_step13_t72_low0.42 \
+#     --output-dir /data_ljy/ll/output/results/PIE_Bench/flux1_lsedit_step13_t72_low0.42 \
 #     --gpu-id 4 \
 #     --seed 42 \
 #     --threshold 0.72 \
@@ -36,7 +36,7 @@
 #     --backend flux1-kontext \
 #     --model-path /data_ljy/ll/weight/FLUX.1-Kontext-dev \
 #     --pie-root /data_ljy/ll/dataset/PIE_Bench \
-#     --output-dir /data_ljy/ll/output/results/PIE_Bench/flux1_havedit_step16_t72_low0.42 \
+#     --output-dir /data_ljy/ll/output/results/PIE_Bench/flux1_lsedit_step16_t72_low0.42 \
 #     --gpu-id 4 \
 #     --seed 42 \
 #     --threshold 0.72 \
@@ -53,7 +53,7 @@
 #     --backend flux1-kontext \
 #     --model-path /data_ljy/ll/weight/FLUX.1-Kontext-dev \
 #     --pie-root /data_ljy/ll/dataset/PIE_Bench \
-#     --output-dir /data_ljy/ll/output/results/PIE_Bench/flux1_havedit_step15_t72_low0.42 \
+#     --output-dir /data_ljy/ll/output/results/PIE_Bench/flux1_lsedit_step15_t72_low0.42 \
 #     --gpu-id 4 \
 #     --seed 42 \
 #     --threshold 0.72 \
@@ -70,7 +70,7 @@ python scripts/run_piebench_batch.py \
     --backend flux1-kontext \
     --model-path /data_ljy/ll/weight/FLUX.1-Kontext-dev \
     --pie-root /data_ljy/ll/dataset/PIE_Bench \
-    --output-dir /data_ljy/ll/output/results/PIE_Bench/flux1_havedit_step10_t83_low0.41_gs25 \
+    --output-dir /data_ljy/ll/output/results/PIE_Bench/flux1_lsedit_step10_t83_low0.41_gs25 \
     --gpu-id 5 \
     --seed 42 \
     --guidance-scale 2.5 \
@@ -88,7 +88,7 @@ python scripts/run_piebench_batch.py \
     --backend flux1-kontext \
     --model-path /data_ljy/ll/weight/FLUX.1-Kontext-dev \
     --pie-root /data_ljy/ll/dataset/PIE_Bench \
-    --output-dir /data_ljy/ll/output/results/PIE_Bench/flux1_havedit_step10_t83_low0.40_gs25 \
+    --output-dir /data_ljy/ll/output/results/PIE_Bench/flux1_lsedit_step10_t83_low0.40_gs25 \
     --gpu-id 5 \
     --seed 42 \
     --guidance-scale 2.5 \
@@ -106,7 +106,7 @@ python scripts/run_piebench_batch.py \
     --backend flux1-kontext \
     --model-path /data_ljy/ll/weight/FLUX.1-Kontext-dev \
     --pie-root /data_ljy/ll/dataset/PIE_Bench \
-    --output-dir /data_ljy/ll/output/results/PIE_Bench/flux1_havedit_step15_t83_low0.41_gs25 \
+    --output-dir /data_ljy/ll/output/results/PIE_Bench/flux1_lsedit_step15_t83_low0.41_gs25 \
     --gpu-id 5 \
     --seed 42 \
     --guidance-scale 2.5 \
@@ -124,7 +124,7 @@ python scripts/run_piebench_batch.py \
     --backend flux1-kontext \
     --model-path /data_ljy/ll/weight/FLUX.1-Kontext-dev \
     --pie-root /data_ljy/ll/dataset/PIE_Bench \
-    --output-dir /data_ljy/ll/output/results/PIE_Bench/flux1_havedit_step16_t83_low0.41_gs25 \
+    --output-dir /data_ljy/ll/output/results/PIE_Bench/flux1_lsedit_step16_t83_low0.41_gs25 \
     --gpu-id 5 \
     --seed 42 \
     --guidance-scale 2.5 \

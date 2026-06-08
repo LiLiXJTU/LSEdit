@@ -4,7 +4,7 @@ from typing import Any
 
 import torch
 
-from havedit.backends.base import BackendRunContext
+from lsedit.backends.base import BackendRunContext
 
 
 class Flux1KontextBackendAdapter:

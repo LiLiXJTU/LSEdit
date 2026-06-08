@@ -13,8 +13,8 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from lsedit.eval.inference import load_local_pipeline, run_single_edit
-from lsedit.flux.attention_processor_headwise_subjectbg_subjectrelease import (
-    enable_headwise_subjectbg_subjectrelease_havedit,
+from lsedit.flux.attention_processor_flux2 import (
+    enable_headwise_subjectbg_subjectrelease_lsedit,
 )
 from scripts.run_flux_demo_headwise_subjectbg_subjectrelease import (
     build_headwise_subjectbg_subjectrelease_config,
@@ -27,10 +27,10 @@ DEFAULT_OUTPUT_DIR = str(REPO_ROOT / "output" / "piebench")
 
 def mode_name_from_backend(backend: str) -> str:
     if backend == "flux1-kontext":
-        return "havedit_flux1_kontext"
+        return "lsedit_flux1_kontext"
     if backend == "qwen-image-edit":
-        return "havedit_qwen_image_edit"
-    return "havedit_flux2_klein_base"
+        return "lsedit_qwen_image_edit"
+    return "lsedit_flux2_klein_base"
 
 
 @dataclass(frozen=True)
@@ -105,7 +105,7 @@ def build_sample_metadata(
         "mode": mode,
         "enable_cpu_offload": bool(args.enable_cpu_offload),
         "enable_bhc": bool(args.enable_bhc),
-        "enable_havedit": bool(args.enable_havedit),
+        "enable_lsedit": bool(args.enable_lsedit),
         "strengths": {
             "1.00": {
                 "mode": mode,
@@ -113,7 +113,7 @@ def build_sample_metadata(
                 "path": generated_filename,
             }
         },
-        "havedit": {
+        "lsedit": {
             "warmup_steps": args.warmup_steps,
             "alpha": args.alpha,
             "beta": args.beta,
@@ -191,14 +191,14 @@ def load_mapping(pie_root: Path) -> dict[str, dict[str, object]]:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Run HAVEdit on PIEBench samples in batch mode")
+    parser = argparse.ArgumentParser(description="Run LSEdit on PIEBench samples in batch mode")
     parser.add_argument("--backend", choices=("flux2", "flux1-kontext", "qwen-image-edit"), default="flux2")
     parser.add_argument("--model-path", default="/workspace/model/FLUX.2-klein-base-9B")
     parser.add_argument("--gpu-id", type=int, default=0)
     parser.set_defaults(
         enable_cpu_offload=False,
         enable_bhc=True,
-        enable_havedit=True,
+        enable_lsedit=True,
         save_step_image=False,
         save_step_semantic_prior=True,
         save_step_attention=True,
@@ -206,7 +206,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--enable-cpu-offload", dest="enable_cpu_offload", action="store_true")
     parser.add_argument("--disable-cpu-offload", dest="enable_cpu_offload", action="store_false")
     parser.add_argument("--disable-bhc", dest="enable_bhc", action="store_false")
-    parser.add_argument("--disable-havedit", dest="enable_havedit", action="store_false")
+    parser.add_argument("--disable-lsedit", dest="enable_lsedit", action="store_false")
     parser.add_argument("--seed", type=int)
     parser.add_argument("--num-inference-steps", type=int, default=28)
     parser.add_argument("--guidance-scale", type=float, default=4.0)
@@ -219,7 +219,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--bhc-tau-high", type=float, default=0.65)
     parser.add_argument("--bhc-lambda-max", type=float, default=0.15)
     parser.add_argument("--visualize-steps", action="store_true")
-    parser.add_argument("--visualize-dir", default="/data/ll/output/HAVEdit_PIE_Bench_show")
+    parser.add_argument("--visualize-dir", default="/data/ll/output/LSEdit_PIE_Bench_show")
     parser.add_argument("--visualize-every-n", type=int, default=1)
     parser.add_argument("--disable-save-step-image", dest="save_step_image", action="store_false")
     parser.add_argument("--disable-save-step-semantic-prior", dest="save_step_semantic_prior", action="store_false")
@@ -266,8 +266,8 @@ def run_batch(args: argparse.Namespace) -> int:
 
     shared_config = build_headwise_subjectbg_subjectrelease_config(args)
     pipeline = load_local_pipeline(shared_config.runtime)
-    if args.enable_havedit:
-        pipeline = enable_headwise_subjectbg_subjectrelease_havedit(pipeline, shared_config)
+    if args.enable_lsedit:
+        pipeline = enable_headwise_subjectbg_subjectrelease_lsedit(pipeline, shared_config)
 
     completed = 0
     skipped = 0
@@ -305,7 +305,7 @@ def run_batch(args: argparse.Namespace) -> int:
             args=args,
             build_config_fn=lambda _args: shared_config,
             load_pipeline_fn=lambda _runtime_cfg: pipeline,
-            enable_havedit_fn=enable_headwise_subjectbg_subjectrelease_havedit,
+            enable_lsedit_fn=enable_headwise_subjectbg_subjectrelease_lsedit,
         )
         write_metadata(metadata_path, metadata)
         completed += 1

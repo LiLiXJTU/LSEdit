@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import torch
 
-from havedit.backends import get_backend_adapter_class
+from lsedit.backends import get_backend_adapter_class
 
 
 def resolve_dtype(name: str) -> torch.dtype:

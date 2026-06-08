@@ -36,9 +36,9 @@ PREFERRED_KONTEXT_RESOLUTIONS = [
 ]
 
 def build_generation_config(args: argparse.Namespace):
-    from havedit import HAVEditConfig
+    from lsedit import LSEditConfig
 
-    config = HAVEditConfig()
+    config = LSEditConfig()
     config.runtime.backend = getattr(args, "backend", config.runtime.backend)
     config.runtime.model_path = args.model_path
     config.runtime.gpu_id = args.gpu_id
@@ -65,15 +65,15 @@ def ensure_output_parent(output: str | Path) -> None:
 
 
 def load_local_pipeline(runtime_cfg):
-    from havedit.flux import load_local_pipeline as _load_local_pipeline
+    from lsedit.flux import load_local_pipeline as _load_local_pipeline
 
     return _load_local_pipeline(runtime_cfg)
 
 
-def enable_havedit(pipeline, config):
-    from havedit import enable_havedit as _enable_havedit
+def enable_lsedit(pipeline, config):
+    from lsedit import enable_lsedit as _enable_lsedit
 
-    return _enable_havedit(pipeline, config)
+    return _enable_lsedit(pipeline, config)
 
 
 def load_input_image(image_path: str | Path):
@@ -265,7 +265,7 @@ def decode_latent_image(pipeline, latents: torch.Tensor | None, latent_ids, imag
     if not isinstance(latents, torch.Tensor):
         return None
 
-    adapter = getattr(pipeline, "_havedit_backend_adapter", None)
+    adapter = getattr(pipeline, "_lsedit_backend_adapter", None)
     if adapter is not None:
         image_width, image_height = image_size if image_size is not None else (0, 0)
         run_ctx = SimpleNamespace(
@@ -473,7 +473,7 @@ class _StepVisualizationExporter:
             return {}
 
         step_number = step_index + 1
-        state = getattr(pipeline, "_havedit_state", None)
+        state = getattr(pipeline, "_lsedit_state", None)
 
         if self.save_step_image:
             self._run_step_export(step_number, "image", lambda: self._save_step_image(step_number, pipeline, callback_kwargs))
@@ -731,9 +731,9 @@ class _StepVisualizationExporter:
         latent_ids = callback_kwargs.get("latent_ids")
         image_size = None
         if latent_ids is None:
-            state = getattr(pipeline, "_havedit_state", None)
+            state = getattr(pipeline, "_lsedit_state", None)
             latent_ids = getattr(state, "latent_ids", None) if state is not None else None
-        state = getattr(pipeline, "_havedit_state", None)
+        state = getattr(pipeline, "_lsedit_state", None)
         source_image = getattr(state, "source_image", None) if state is not None else None
         if isinstance(source_image, Image.Image):
             image_size = source_image.size
@@ -794,7 +794,7 @@ def _build_step_visualizer(args: argparse.Namespace, output_path: Path, source_i
         return None
 
     visualize_dir = Path(
-        getattr(args, "visualize_dir", "/data/ll/output/HAVEdit_PIE_Bench_show")
+        getattr(args, "visualize_dir", "/data/ll/output/LSEdit_PIE_Bench_show")
     )
     run_id = dt.datetime.now().strftime("run_%Y%m%d_%H%M%S")
     run_dir = visualize_dir / run_id / Path(output_path).stem
@@ -970,7 +970,7 @@ def save_diff_background_mask_visualization(background_mask: np.ndarray, output_
 
 
 def save_source_latent_decode_visualization(pipeline, output_path: str | Path) -> Path | None:
-    state = getattr(pipeline, "_havedit_state", None)
+    state = getattr(pipeline, "_lsedit_state", None)
     if state is None:
         return None
     source_image = getattr(state, "source_image", None)
@@ -1099,29 +1099,29 @@ def should_generate_prediction(*, prediction_exists: bool, skip_inference: bool,
     return not prediction_exists
 
 
-def _enable_havedit_with_optional_prompt(enable_havedit_fn, pipeline, config, *, prompt: str):
-    """Enable either the stable or conflict-aware HAVEdit variant.
+def _enable_lsedit_with_optional_prompt(enable_lsedit_fn, pipeline, config, *, prompt: str):
+    """Enable either the stable or conflict-aware LSEdit variant.
 
-    The stable helper is typically `enable_havedit(pipeline, config)`.
-    The conflict-aware helper is typically `enable_conflict_aware_havedit(pipeline, config, prompt=...)`.
+    The stable helper is typically `enable_lsedit(pipeline, config)`.
+    The conflict-aware helper is typically `enable_conflict_aware_lsedit(pipeline, config, prompt=...)`.
     """
     try:
-        signature = inspect.signature(enable_havedit_fn)
+        signature = inspect.signature(enable_lsedit_fn)
     except (TypeError, ValueError):
-        return enable_havedit_fn(pipeline, config)
+        return enable_lsedit_fn(pipeline, config)
 
     parameters = dict(signature.parameters)
     accepts_kwargs = any(parameter.kind is inspect.Parameter.VAR_KEYWORD for parameter in parameters.values())
     if accepts_kwargs:
         # Some conflict-aware hooks accept prompt via **kwargs without declaring it explicitly.
-        return enable_havedit_fn(pipeline, config, prompt=prompt)
+        return enable_lsedit_fn(pipeline, config, prompt=prompt)
 
     prompt_param = parameters.get("prompt")
     if prompt_param is None:
         # A few integrations may accept prompt positionally (or via *args) without naming it `prompt`.
         accepts_varargs = any(parameter.kind is inspect.Parameter.VAR_POSITIONAL for parameter in parameters.values())
         if accepts_varargs:
-            return enable_havedit_fn(pipeline, config, prompt)
+            return enable_lsedit_fn(pipeline, config, prompt)
 
         positional_params = [
             parameter
@@ -1129,14 +1129,14 @@ def _enable_havedit_with_optional_prompt(enable_havedit_fn, pipeline, config, *,
             if parameter.kind in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD)
         ]
         if len(positional_params) >= 3:
-            return enable_havedit_fn(pipeline, config, prompt)
+            return enable_lsedit_fn(pipeline, config, prompt)
 
-        return enable_havedit_fn(pipeline, config)
+        return enable_lsedit_fn(pipeline, config)
 
     if prompt_param.kind is inspect.Parameter.POSITIONAL_ONLY:
-        return enable_havedit_fn(pipeline, config, prompt)
+        return enable_lsedit_fn(pipeline, config, prompt)
 
-    return enable_havedit_fn(pipeline, config, prompt=prompt)
+    return enable_lsedit_fn(pipeline, config, prompt=prompt)
 
 def _calculate_shift(
     image_seq_len,
@@ -1188,12 +1188,12 @@ def _run_single_edit_flux1_kontext_with_image(
 ):
     import numpy as np
     import torch
-    from havedit.flux.pipeline import initialize_source_latents
+    from lsedit.flux.pipeline import initialize_source_latents
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     device = resolve_generator_device(pipe, args)
     source_image = image
-    state = getattr(pipe, "_havedit_state", None)
+    state = getattr(pipe, "_lsedit_state", None)
     if state is not None and hasattr(source_image, "copy"):
         state.source_image = source_image.copy()
     # gen_height, gen_width = _resolve_generation_size(
@@ -1295,7 +1295,7 @@ def _run_single_edit_flux1_kontext_with_image(
         guidance = torch.full([1], args.guidance_scale, device=device, dtype=torch.float32).expand(latents.shape[0])
 
     latent_height, latent_width = _spatial_shape_from_ids(latent_ids, latents.shape[1])
-    state = getattr(pipe, "_havedit_state", None)
+    state = getattr(pipe, "_lsedit_state", None)
     if state is not None:
         state.begin_run(
             total_steps=total_steps,
@@ -1398,7 +1398,7 @@ def run_single_edit(
     args: argparse.Namespace,
     build_config_fn: Callable[[argparse.Namespace], object] | None = None,
     load_pipeline_fn: Callable[[object], object] | None = None,
-    enable_havedit_fn: Callable[..., object] | None = None,
+    enable_lsedit_fn: Callable[..., object] | None = None,
     load_input_image_fn: Callable[[str | Path], object] | None = None,
     build_pipeline_call_kwargs_fn: Callable[[object, argparse.Namespace, object], dict[str, object]] | None = None,
     extract_output_image_fn: Callable[[object], object] | None = None,
@@ -1407,7 +1407,7 @@ def run_single_edit(
 ) -> Path:
     build_config_fn = build_config_fn or build_generation_config
     load_pipeline_fn = load_pipeline_fn or load_local_pipeline
-    enable_havedit_fn = enable_havedit_fn or enable_havedit
+    enable_lsedit_fn = enable_lsedit_fn or enable_lsedit
     load_input_image_fn = load_input_image_fn or load_input_image
     build_pipeline_call_kwargs_fn = build_pipeline_call_kwargs_fn or build_pipeline_call_kwargs
     extract_output_image_fn = extract_output_image_fn or extract_output_image
@@ -1415,11 +1415,11 @@ def run_single_edit(
 
     config = build_config_fn(args)
     pipeline = load_pipeline_fn(config.runtime)
-    if args.enable_havedit:
-        pipeline = _enable_havedit_with_optional_prompt(enable_havedit_fn, pipeline, config, prompt=prompt)
+    if args.enable_lsedit:
+        pipeline = _enable_lsedit_with_optional_prompt(enable_lsedit_fn, pipeline, config, prompt=prompt)
 
     source_image = load_input_image_fn(image_path)
-    state = getattr(pipeline, "_havedit_state", None)
+    state = getattr(pipeline, "_lsedit_state", None)
     if state is not None:
         state.source_image = source_image.copy()
     step_visualizer = _build_step_visualizer(args, Path(output_path), source_image)
@@ -1473,7 +1473,7 @@ def run_single_edit(
     output_image = maybe_paste_back_background_pixels(
         output_image,
         source_image,
-        getattr(pipeline, "_havedit_state", None),
+        getattr(pipeline, "_lsedit_state", None),
         bool(getattr(args, "enable_background_pixel_pasteback", False)),
     )
     output_image = normalize_output_image_size(output_image, source_image)

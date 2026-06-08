@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class RuntimeConfig:
-    """Runtime defaults for launching HAVEdit inference."""
+    """Runtime defaults for launching LSEdit inference."""
     backend: str = "flux2"
     model_path: str = "/data/ll/weight/black-forest-labs/FLUX.2-klein-base-9B"
     enable_cpu_offload: bool = True
@@ -11,7 +11,7 @@ class RuntimeConfig:
     torch_dtype: str = "bfloat16"
     print_havsr_debug: bool = False
     print_softmap_terms_debug: bool = False
-    havedit_end: int = 0
+    lsedit_end: int = 0
     havsr_gate_largest_component_ratio: float = 0.45
     havsr_gate_containment_ratio: float = 0.22
     background_pixel_ring_width: int = 1
@@ -60,8 +60,8 @@ class TrajectoryTrustConfig:
 
 
 @dataclass
-class HAVEditConfig:
-    """Root HAVEdit configuration exposing all major subsystems."""
+class LSEditConfig:
+    """Root LSEdit configuration exposing all major subsystems."""
     runtime: RuntimeConfig = field(default_factory=RuntimeConfig)
     wsp: WSPConfig = field(default_factory=WSPConfig)
     havsr: HAVSRConfig = field(default_factory=HAVSRConfig)

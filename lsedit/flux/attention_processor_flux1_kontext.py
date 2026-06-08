@@ -3,11 +3,11 @@ from __future__ import annotations
 import torch
 import torch.nn.functional as F
 
-from havedit.backends import get_backend_adapter_class
+from lsedit.backends import get_backend_adapter_class
 
 from .boundary_consistency import apply_boundary_head_consistency
 from .head_scores import _local_zscore_map, compute_head_deviation
-from .runtime import HAVEditRuntimeState
+from .runtime import LSEditRuntimeState
 from .warp import _set_processor, _wrapped_pipeline_class
 
 dispatch_attention_fn = None
@@ -168,8 +168,8 @@ class FluxKontextHAVAttnProcessor:
             return self.is_single_stream
         return True
 
-    def _havedit_active(self) -> bool:
-        end_step = int(getattr(self.state.config.runtime, "havedit_end", 0) or 0)
+    def _lsedit_active(self) -> bool:
+        end_step = int(getattr(self.state.config.runtime, "lsedit_end", 0) or 0)
         return end_step <= 0 or (self.state.current_step + 1) <= end_step
 
     def _split_pred_and_ref_values(self, values: torch.Tensor):
@@ -235,7 +235,7 @@ class FluxKontextHAVAttnProcessor:
         return value_by_head.transpose(1, 2)
 
     def _apply_bhc(self, values: torch.Tensor, refs: torch.Tensor, scores: torch.Tensor) -> torch.Tensor:
-        if not self._havedit_active() or not self._block_enabled() or not self.state.config.bhc.enabled:
+        if not self._lsedit_active() or not self._block_enabled() or not self.state.config.bhc.enabled:
             return values
         return apply_boundary_head_consistency(
             values=values,
@@ -305,20 +305,20 @@ class FluxKontextHAVAttnProcessor:
         gain = (1.0 - preserve_weight).unsqueeze(-1).to(dtype=v_pred.dtype)
         return v_ref + gain * (v_pred - v_ref), preserve_score
 
-# def enable_headwise_subjectbg_subjectrelease_havedit(pipeline, config, **_kwargs):
-#     if hasattr(pipeline, "_havedit_state"):
-#         existing_state = getattr(pipeline, "_havedit_state")
+# def enable_headwise_subjectbg_subjectrelease_lsedit(pipeline, config, **_kwargs):
+#     if hasattr(pipeline, "_lsedit_state"):
+#         existing_state = getattr(pipeline, "_lsedit_state")
 #         if getattr(existing_state, "config", None) is not config:
 #             raise RuntimeError(
-#                 "headwise subjectbg subjectrelease HAVEdit is already enabled on this pipeline with a different config object"
+#                 "headwise subjectbg subjectrelease LSEdit is already enabled on this pipeline with a different config object"
 #             )
 #         return pipeline
 
-#     state = HAVEditRuntimeState(config=config)
+#     state = LSEditRuntimeState(config=config)
 
 #     runtime_cfg = getattr(config, "runtime", config)
 #     backend_name = getattr(runtime_cfg, "backend", "flux2")
-#     pipeline.transformer._havedit_backend = backend_name
+#     pipeline.transformer._lsedit_backend = backend_name
 #     adapter = get_backend_adapter_class(backend_name)()
 
 #     original_class = pipeline.__class__
@@ -347,9 +347,9 @@ class FluxKontextHAVAttnProcessor:
 #             processor,
 #         )
 
-#     pipeline._havedit_state = state
-#     pipeline._havedit_backend_adapter = adapter
-#     pipeline._havedit_original_class = original_class
-#     pipeline._havedit_original_processors = original_processors
+#     pipeline._lsedit_state = state
+#     pipeline._lsedit_backend_adapter = adapter
+#     pipeline._lsedit_original_class = original_class
+#     pipeline._lsedit_original_processors = original_processors
 #     pipeline.__class__ = _wrapped_pipeline_class(original_class)
 #     return pipeline

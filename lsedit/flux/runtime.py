@@ -6,13 +6,13 @@ from typing import Optional
 
 import torch
 
-from ..config import HAVEditConfig
+from ..config import LSEditConfig
 from .semantic_prior import WarmupSemanticPrior
 
 
 @dataclass
-class HAVEditRuntimeState:
-    config: HAVEditConfig
+class LSEditRuntimeState:
+    config: LSEditConfig
     current_step: int = 0
     total_steps: int = 0
     text_n: int = 0
