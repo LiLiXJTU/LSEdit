@@ -5,7 +5,7 @@ import torch.nn.functional as F
 
 from lsedit.backends import get_backend_adapter_class
 
-from .boundary_consistency import apply_boundary_head_consistency
+from .tbss import apply_tbss
 from .head_scores import _local_zscore_map, compute_head_deviation
 from .runtime import LSEditRuntimeState
 from .warp import _set_processor, _wrapped_pipeline_class
@@ -237,7 +237,7 @@ class FluxKontextHAVAttnProcessor:
     def _apply_bhc(self, values: torch.Tensor, refs: torch.Tensor, scores: torch.Tensor) -> torch.Tensor:
         if not self._lsedit_active() or not self._block_enabled() or not self.state.config.bhc.enabled:
             return values
-        return apply_boundary_head_consistency(
+        return apply_tbss(
             values=values,
             refs=refs,
             scores=scores,
