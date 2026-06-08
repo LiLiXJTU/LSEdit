@@ -6,7 +6,7 @@ import torch.nn.functional as F
 from lsedit.backends import get_backend_adapter_class
 
 from .tbss import apply_tbss
-from .head_scores import _local_zscore_map, compute_head_deviation
+from .lscp import _local_zscore_map, compute_head_deviation
 from .runtime import LSEditRuntimeState
 from .warp import _set_processor, _wrapped_pipeline_class
 
