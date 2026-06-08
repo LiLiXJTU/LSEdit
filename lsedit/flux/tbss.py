@@ -36,11 +36,6 @@ def tbss_weights(
     if lambda_max < 0:
         raise ValueError("lambda_max must be non-negative")
 
-    center = (tau_low + tau_high) / 2.0
-    half_width = (tau_high - tau_low) / 2.0
-    ramp = 1.0 - (scores - center).abs() / half_width
-    tapered = ramp.clamp(min=0.0, max=1.0)
-    return lambda_max * tapered
 
 
 def apply_tbss(
@@ -57,21 +52,3 @@ def apply_tbss(
     `scores` shape must be identical; the remaining trailing dimensions are
     treated as feature axes to be broadcasted.
     """
-    weights = tbss_weights(
-        scores,
-        tau_low=tau_low,
-        tau_high=tau_high,
-        lambda_max=lambda_max,
-    )
-    weights = weights.clamp(min=0.0, max=1.0)
-    if values.shape != refs.shape:
-        raise ValueError("values and refs must share the same shape")
-    if values.shape[: scores.dim()] != scores.shape:
-        raise ValueError("scores shape must match the leading dimensions of values and refs")
-
-    if values.device != refs.device or values.device != scores.device:
-        raise ValueError("values, refs, and scores must be on the same device")
-
-    feature_dims = values.dim() - scores.dim()
-    expanded_weights = weights.reshape(*weights.shape, *([1] * feature_dims))
-    return torch.lerp(values, refs, expanded_weights.to(dtype=values.dtype))
