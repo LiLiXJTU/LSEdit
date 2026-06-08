@@ -16,12 +16,7 @@ def _local_zscore_map(
     eps: float = 1e-6,
 ) -> torch.Tensor:
     batch, heads, tokens = deviation.shape
-    x = deviation.reshape(batch * heads, 1, height, width)
-    mean = F.avg_pool2d(x, kernel_size=kernel_size, stride=1, padding=kernel_size // 2)
-    mean_sq = F.avg_pool2d(x * x, kernel_size=kernel_size, stride=1, padding=kernel_size // 2)
-    var = (mean_sq - mean * mean).clamp_min(0)
-    std = var.sqrt()
-    return ((x - mean) / (std + eps)).reshape(batch, heads, tokens)
+    
 
 
 def compute_preserve_scores(
@@ -34,9 +29,7 @@ def compute_preserve_scores(
     kernel_size: int,
     eps: float = 1e-6,
 ) -> torch.Tensor:
-    z = _local_zscore_map(deviation, height=height, width=width, kernel_size=kernel_size, eps=eps)
-    sem = semantic_prior.reshape(semantic_prior.shape[0], 1, -1).to(dtype=z.dtype, device=z.device)
-    return torch.sigmoid(-alpha * z + beta * (1 - sem))
+
 
 
 def replace_values_from_scores(
